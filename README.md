@@ -1,0 +1,2 @@
+# Improved-detection-of-fraud-cases-for-e-commerce-and-bank-transactions
+This project will involve:  Analyzing and preprocessing transaction data. Creating and engineering features that help identify fraud patterns. Building and training machine learning models to detect fraud. Evaluating model performance and making a justified selection. Interpreting your model's decisions using modern explainability techniques.
