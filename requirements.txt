@@ -1,0 +1,21 @@
+pandas
+numpy>=1.26
+pytest>=7.4
+matplotlib
+seaborn
+scikit-learn
+xgboost
+lightgbm  # or one of them
+imbalanced-learn
+shap
+jupyter
+pandas
+numpy
+matplotlib
+seaborn
+scikit-learn
+xgboost
+lightgbm  # or one of them
+imbalanced-learn
+shap
+jupyter
