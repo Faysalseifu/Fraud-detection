@@ -1,0 +1,69 @@
+Fraud Detection Project Report
+
+1. Executive Summary
+Fraud undermines revenue, trust, and operations. This project builds end-to-end fraud detection pipelines for (a) e-commerce (Fraud_Data.csv + IP geolocation) and (b) bank transactions (creditcard.csv). We enrich with geolocation and temporal/velocity signals, address severe class imbalance (class weights, SMOTE/undersampling), and benchmark Logistic Regression, Random Forest, and XGBoost. SHAP provides global and local explanations to justify controls. XGBoost delivers the best AUC-PR/F1; recommendations focus on rapid signup-to-purchase checks, device/IP velocity, and geographic risk tiering.
+
+2. Business Objective & Context
+Goal: Increase fraud catch while minimizing false positives for Adey Innovations Inc.
+Scope: Two datasets—Fraud_Data (with IP mapping) and creditcard (PCA-like features).
+Success metrics: AUC-PR, F1, precision/recall, confusion matrix; thresholds tuned to review capacity.
+Constraints: Imbalance, potential IP noise, need for interpretability and governance.
+
+3. Data Sources & Ingestion
+- Fraud_Data + IpAddress_to_Country: join IP -> country; keep Unknown bucket.
+- creditcard: numeric PCA-like V1..V28, Amount, Time.
+Checks: duplicates, impossible timestamps, outliers, missing IP mappings.
+
+4. Data Quality, Cleaning, Preprocessing
+- Missing: Fraud_Data numeric->median, categorical->mode/Unknown; creditcard none expected.
+- Outliers: clip/winsorize Amount/value if destabilizing.
+- Encoding: Fraud_Data OHE or frequency for country/device/browser; creditcard already numeric.
+- Scaling: StandardScaler for linear models; optional for trees.
+- Splits: stratified train/val/test; pipelines via ColumnTransformer/Pipeline for reproducibility and feature names.
+
+5. Feature Engineering
+Temporal/velocity (Fraud_Data): time_since_signup_hours, account_age_days, tx counts last 1h/24h, time_since_last_tx, hour_of_day/day_of_week (cyclic).
+Device/IP sharing: device_count, ip_count, entropy-style dispersion.
+Geolocation: country risk tiers (high/med/low), Unknown kept explicit.
+Monetary: purchase_value bins, value_zscore (user/global).
+creditcard: cyclic time from Time; Amount scaled; trees discover structure in PCA features.
+
+6. Class Imbalance Strategy
+- Fraud_Data: SMOTE/SMOTE-NC on train folds or class weights; evaluate on untouched val/test.
+- creditcard: undersample majority for speed; class_weight for Logistic Regression; XGBoost scale_pos_weight ≈ N_neg/N_pos.
+- Always stratify splits; avoid synthetic leakage into evaluation.
+
+7. Modeling Approach
+Baselines: Logistic Regression (class_weight='balanced').
+Trees: Random Forest; XGBoost with tuned depth, learning_rate, subsample, colsample_bytree, min_child_weight, gamma, scale_pos_weight.
+Protocol: stratified CV, early stopping for XGBoost, fixed seeds.
+
+8. Evaluation
+Primary: AUC-PR, F1. Secondary: precision, recall, ROC-AUC, confusion matrix.
+Operating points: choose threshold optimizing F1 or business cost: Cost = c_FN*FN + c_FP*FP.
+Representative outcome: XGBoost > RF > LR on both datasets; velocity and country features lift Fraud_Data performance; creditcard improves with scale_pos_weight and light depth.
+
+9. Explainability (SHAP)
+Global top drivers (Fraud_Data): time_since_signup_hours (short -> fraud), device_count/ip_count (shared -> risk), country_risk, purchase_value, hour_of_day (late night).
+Local: force plots show why specific transactions flagged/missed; risky signals vs. long-tenure normal behavior.
+creditcard: SHAP highlights select PCA components and Amount; use scores/thresholds for narratives.
+
+10. Operational Recommendations
+1) Rapid signup-to-purchase: step-up auth if within 2 hours of signup.
+2) Device/IP velocity: flag if shared by >3 users in short windows; combine with value.
+3) Geographic risk tiering: apply friction (CAPTCHA/3DS) for high-risk countries, especially with velocity.
+4) Value-aware controls: escalate mid/high values when paired with risky context; keep friction low for low-risk cases.
+5) Human-in-the-loop: route borderlines to review; feed back outcomes for threshold tuning.
+6) Governance: log scores, SHAP top factors, thresholds; monitor drift in geo/device/IP patterns; retrain periodically.
+
+11. Limitations
+IP noise (VPN/proxy), SMOTE realism on mixed data, PCA opacity in creditcard, data drift risk.
+
+12. Future Work
+Graph features (shared entities), sequence models for sessions, cost-sensitive loss, active learning from reviews, better proxy/ASN intelligence, calibrated risk bands with A/B-tested frictions.
+
+13. Reproducibility
+Artifacts stored: preprocessors, models, SHAP explainers/values. Pipelines ensure consistent transforms and feature names for SHAP. Notebook documents workflow; src utilities support reuse.
+
+14. Conclusion
+Geolocation + temporal/velocity signals, imbalance-aware training, and SHAP explanations yield strong, interpretable XGBoost models. Actionable controls (signup timing, device/IP sharing, geo risk, value-aware friction) reduce fraud loss while containing customer friction.
