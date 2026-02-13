@@ -220,16 +220,26 @@ if input_df is not None:
     feature_names = _get_transformed_feature_names(preprocessor, X_transformed)
     row = _row_array(X_transformed[0])
 
-    fig, _ax = plt.subplots(figsize=(10, 2))
-    shap.force_plot(
+    st.markdown("**Waterfall view**")
+    explanation = shap.Explanation(
+        values=shap_values[0],
+        base_values=expected_value,
+        data=row,
+        feature_names=feature_names,
+    )
+    fig, _ax = plt.subplots(figsize=(10, 4))
+    shap.plots.waterfall(explanation, max_display=12, show=False)
+    st.pyplot(fig, clear_figure=True)
+
+    st.markdown("**Force view**")
+    force_plot = shap.force_plot(
         expected_value,
         shap_values[0],
         row,
         feature_names=feature_names,
-        matplotlib=True,
-        show=False,
     )
-    st.pyplot(fig, clear_figure=True)
+    force_html = f"<head>{shap.getjs()}</head>{force_plot.html()}"
+    st.components.v1.html(force_html, height=200)
 
     with st.expander("How to interpret this"):
         st.markdown(
