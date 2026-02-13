@@ -9,13 +9,5 @@ lightgbm  # or one of them
 imbalanced-learn
 shap
 jupyter
-pandas
-numpy
-matplotlib
-seaborn
-scikit-learn
-xgboost
-lightgbm  # or one of them
-imbalanced-learn
-shap
-jupyter
+streamlit>=1.30
+joblib

@@ -61,6 +61,12 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
+## Dashboard (Streamlit)
+Run the interactive risk scoring demo from the project root:
+```bash
+streamlit run dashboard/app.py
+```
+
 ## Data
 - Place raw CSVs under `data/raw/` (see structure above).
 - Processed artifacts and engineered features are saved under `data/processed/` by the notebooks.
