@@ -27,3 +27,17 @@ def test_time_since_signup_hours():
 
     hours = time_since_signup_hours(signup, purchase)
     assert np.isclose(hours, 5.5)
+
+
+def test_time_since_signup_hours_large_gap():
+    signup = datetime(2024, 1, 1, 0, 0, 0)
+    purchase = signup + timedelta(days=10, hours=3)
+
+    hours = time_since_signup_hours(signup, purchase)
+    assert np.isclose(hours, 243.0)
+
+
+def test_count_prev_within_single_timestamp():
+    base = datetime(2024, 1, 1, 12, 0, 0)
+    counts = count_prev_within([base], window_hours=1)
+    assert counts == [0]
