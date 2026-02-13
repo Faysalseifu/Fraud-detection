@@ -1,5 +1,7 @@
 # Improved Detection of Fraud for E‑Commerce and Bank Transactions
 
+[![CI](https://github.com/Faysalseifu/Fraud-detection/actions/workflows/ci.yml/badge.svg)](https://github.com/Faysalseifu/Fraud-detection/actions/workflows/ci.yml)
+
 This project builds an end‑to‑end fraud detection pipeline for two real‑world datasets: an e‑commerce clickstream/transactions dataset (Fraud_Data) and the popular credit card transactions dataset (creditcard). It covers data understanding, cleaning, feature engineering (including geolocation), model training, evaluation, and explainability.
 
 ## Business Overview — What’s Happening
