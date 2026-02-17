@@ -1,0 +1,38 @@
+Interim Report 2 - Fraud Detection Project (Feb 14, 2026)
+
+1) Original plan vs actual progress
+- Planned: refactor src/ utilities and add tests (Wed-Fri).
+  Actual: completed feature utils refactor and pytest coverage; tests added and passing.
+- Planned: set up CI (Fri).
+  Actual: GitHub Actions CI pipeline added and running green.
+- Planned: build a basic dashboard (Sat).
+  Actual: Streamlit dashboard implemented with input form, score, risk label, and SHAP explainability.
+- Planned: add rule toggles and improve dashboard UX (Sun).
+  Actual: added interactive rule toggles, improved layout, added risk callouts, and made SHAP display more reliable.
+
+2) What was completed (with proof artifacts in repo)
+- Modular src/ structure and feature utilities: src/feature_utils.py.
+- Pytest suite (8-10 tests) covering feature logic: tests/.
+- CI pipeline running green: .github/workflows/ci.yml and badge in README.md.
+- Streamlit dashboard with inputs, score, risk level, SHAP explanation: dashboard/app.py.
+- Rule simulation toggles and adjusted risk output added in dashboard/app.py.
+
+3) What was not completed and why
+- Advanced dashboard styling and more rule options: limited time, prioritized stability and core UX.
+- Final report/blog polish: deferred to next milestone to keep focus on dashboard quality.
+
+4) Revised plan for remaining time
+- Mon: polish README, add usage notes and screenshots, fix any remaining dashboard edge cases.
+- Tue: finalize report/blog, ensure reproducibility, and submit final deliverables.
+
+5) Evidence checklist (to attach as screenshots)
+- Dashboard home screen.
+- Low-risk example with SHAP plot.
+- High-risk example with SHAP plot.
+- CI badge in README.
+- Passing pytest output.
+- Green GitHub Actions run.
+
+6) GitHub link
+- Push latest work to branch: refactor-tests-ci.
+- Repo: https://github.com/Faysalseifu/Fraud-detection
