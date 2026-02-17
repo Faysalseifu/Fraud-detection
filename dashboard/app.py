@@ -52,8 +52,7 @@ def _resolve_path(candidates: list[Path]) -> Path:
         if candidate.exists():
             return candidate
     raise FileNotFoundError(
-        "Missing required artifact. Checked: "
-        + ", ".join(str(p) for p in candidates)
+        "Missing required artifact. Checked: " + ", ".join(str(p) for p in candidates)
     )
 
 
@@ -282,7 +281,9 @@ if input_df is not None:
 
     adjusted_proba = proba
     if rule_hits:
-        adjusted_proba = min(1.0, max(RULE_FORCE_SCORE, proba + RULE_BOOST * len(rule_hits)))
+        adjusted_proba = min(
+            1.0, max(RULE_FORCE_SCORE, proba + RULE_BOOST * len(rule_hits))
+        )
 
     if adjusted_proba > 0.7:
         risk_level = "High"
@@ -320,7 +321,9 @@ if input_df is not None:
 
     expected_value = explainer.expected_value
     if isinstance(expected_value, (list, np.ndarray)):
-        expected_value = expected_value[1] if len(expected_value) > 1 else expected_value[0]
+        expected_value = (
+            expected_value[1] if len(expected_value) > 1 else expected_value[0]
+        )
 
     feature_names = _get_transformed_feature_names(preprocessor, X_transformed)
     row = _row_array(X_transformed[0])
