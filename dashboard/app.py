@@ -161,10 +161,10 @@ with st.sidebar:
         st.stop()
 
     st.divider()
-    st.subheader("Business Metrics")
-    st.metric("Fraud catch rate", "~87%")
-    st.metric("False positives", "<11%")
-    st.metric("Avg. decision time", "<1s")
+    st.subheader("Model Performance")
+    st.metric("Fraud Recall", "87%+")
+    st.metric("Precision", "89%+")
+    st.metric("PR-AUC", "0.91+")
 
     st.divider()
     st.subheader("Rule Toggles")
@@ -206,6 +206,8 @@ with st.form("transaction_form"):
 uploaded_file = st.file_uploader("Upload a CSV or JSON file", type=["csv", "json"])
 
 input_df = None
+input_source = None
+raw_upload = None
 
 if uploaded_file is not None:
     try:
@@ -217,6 +219,8 @@ if uploaded_file is not None:
             st.warning("Uploaded file has no rows.")
         else:
             input_df = raw_df.iloc[[0]].copy()
+            raw_upload = input_df.iloc[0].to_dict()
+            input_source = "upload"
     except Exception as exc:
         st.error(f"Failed to read file: {exc}")
 
@@ -232,6 +236,7 @@ if submitted and input_df is None:
         "country": country,
     }
     input_df = _build_input_frame(columns, cat_cols, num_cols, overrides)
+    input_source = "form"
 
 if input_df is not None:
     input_df = _build_input_frame(
@@ -239,8 +244,33 @@ if input_df is not None:
     )
     input_df = _clean_input_frame(input_df, cat_cols, num_cols)
 
-    X_transformed = preprocessor.transform(input_df)
-    proba = model.predict_proba(X_transformed)[0][1]
+    if "country" in input_df.columns:
+        input_df["country"] = input_df["country"].where(
+            input_df["country"].isin(COUNTRY_OPTIONS), "Other"
+        )
+
+    if input_source == "upload" and raw_upload is not None:
+        required_fields = [
+            "purchase_value",
+            "age",
+            "time_since_signup_hours",
+            "device_count",
+            "ip_count",
+            "country",
+        ]
+        missing_fields = [
+            field
+            for field in required_fields
+            if field in raw_upload
+            and (raw_upload[field] is None or str(raw_upload[field]).strip() == "")
+        ]
+        if missing_fields:
+            st.error(f"Required fields missing values: {', '.join(missing_fields)}")
+            st.stop()
+
+    with st.spinner("Scoring transaction..."):
+        X_transformed = preprocessor.transform(input_df)
+        proba = model.predict_proba(X_transformed)[0][1]
 
     rule_hits = []
     if rule_fast_signup and input_df.loc[0, "time_since_signup_hours"] < 2:
