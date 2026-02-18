@@ -139,9 +139,61 @@ def _row_array(row):
 
 st.set_page_config(page_title="Fraud Risk Detector", layout="wide")
 
-st.title("Fraud Risk Detector")
 st.markdown(
-    "Enter a transaction to get a fraud risk score and an explanation based on SHAP."
+    """
+    <style>
+    .app-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #1d4ed8;
+        margin-bottom: 0.2rem;
+    }
+    .subtitle {
+        color: #334155;
+        margin-bottom: 1rem;
+    }
+    .summary-card {
+        border-radius: 12px;
+        padding: 0.9rem 1rem;
+        margin: 0.4rem 0;
+        border: 1px solid #dbeafe;
+        background: #eff6ff;
+        color: #1e3a8a;
+    }
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.6rem;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        margin-left: 0.35rem;
+    }
+    .badge-low {
+        background: #dcfce7;
+        color: #166534;
+    }
+    .badge-medium {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    .badge-high {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    .section-label {
+        color: #475569;
+        font-size: 0.95rem;
+        margin-top: 0.2rem;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown("<div class='app-title'>Fraud Risk Detector</div>", unsafe_allow_html=True)
+st.markdown(
+    "<div class='subtitle'>Enter a transaction to get a fraud risk score and a SHAP explanation.</div>",
+    unsafe_allow_html=True,
 )
 st.caption(
     "Use manual entry or upload a single-row file. Business rule toggles in the sidebar "
@@ -302,16 +354,30 @@ if input_df is not None:
 
     if adjusted_proba > 0.7:
         risk_level = "High"
+        risk_badge_class = "badge-high"
     elif adjusted_proba > 0.3:
         risk_level = "Medium"
+        risk_badge_class = "badge-medium"
     else:
         risk_level = "Low"
+        risk_badge_class = "badge-low"
 
     st.subheader("Risk Assessment")
     metric_left, metric_mid, metric_right = st.columns(3)
     metric_left.metric("Model Probability", f"{proba:.1%}")
     metric_mid.metric("Adjusted Probability", f"{adjusted_proba:.1%}")
     metric_right.metric("Risk Level", risk_level)
+
+    st.markdown(
+        f"""
+        <div class='summary-card'>
+            Final Decision
+            <span class='badge {risk_badge_class}'>{risk_level} Risk</span>
+            <div class='section-label'>Adjusted probability after business rules: {adjusted_proba:.1%}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     st.progress(float(adjusted_proba))
 
     if risk_level == "High":
