@@ -143,6 +143,10 @@ st.title("Fraud Risk Detector")
 st.markdown(
     "Enter a transaction to get a fraud risk score and an explanation based on SHAP."
 )
+st.caption(
+    "Use manual entry or upload a single-row file. Business rule toggles in the sidebar "
+    "can simulate stricter fraud controls."
+)
 
 with st.sidebar:
     st.header("Project Info")
@@ -183,26 +187,37 @@ with st.sidebar:
 columns, cat_cols, num_cols = _get_schema(preprocessor)
 
 st.subheader("Transaction Input")
-st.caption("Use the form or upload a single-row CSV/JSON file.")
+st.caption("Choose a mode below, then score the transaction.")
 
-with st.form("transaction_form"):
-    left, right = st.columns(2)
-    with left:
-        purchase_value = st.number_input("Purchase Value", min_value=0.0, value=50.0)
-        age = st.number_input("User Age", min_value=18, max_value=100, value=35)
-        time_since_signup_hours = st.number_input(
-            "Hours Since Signup", min_value=0.0, value=24.0
-        )
-        hour_of_day = st.slider("Hour of Day", 0, 23, 14)
-        day_of_week = st.slider("Day of Week (0=Mon)", 0, 6, 2)
-    with right:
-        device_count = st.number_input("Users on Device", min_value=1, value=1)
-        ip_count = st.number_input("Users on IP", min_value=1, value=1)
-        country = st.selectbox("Country", COUNTRY_OPTIONS)
+manual_tab, upload_tab = st.tabs(["Manual Entry", "File Upload"])
 
-    submitted = st.form_submit_button("Check Risk")
+with manual_tab:
+    with st.form("transaction_form"):
+        left, right = st.columns(2)
+        with left:
+            purchase_value = st.number_input(
+                "Purchase Value", min_value=0.0, value=50.0
+            )
+            age = st.number_input("User Age", min_value=18, max_value=100, value=35)
+            time_since_signup_hours = st.number_input(
+                "Hours Since Signup", min_value=0.0, value=24.0
+            )
+            hour_of_day = st.slider("Hour of Day", 0, 23, 14)
+            day_of_week = st.slider("Day of Week (0=Mon)", 0, 6, 2)
+        with right:
+            device_count = st.number_input("Users on Device", min_value=1, value=1)
+            ip_count = st.number_input("Users on IP", min_value=1, value=1)
+            country = st.selectbox("Country", COUNTRY_OPTIONS)
 
-uploaded_file = st.file_uploader("Upload a CSV or JSON file", type=["csv", "json"])
+        submitted = st.form_submit_button("Check Risk", use_container_width=True)
+
+with upload_tab:
+    uploaded_file = st.file_uploader(
+        "Upload a single-row CSV or JSON file", type=["csv", "json"]
+    )
+
+if "uploaded_file" not in locals():
+    uploaded_file = None
 
 input_df = None
 input_source = None
@@ -287,18 +302,18 @@ if input_df is not None:
 
     if adjusted_proba > 0.7:
         risk_level = "High"
-        risk_color = "red"
     elif adjusted_proba > 0.3:
         risk_level = "Medium"
-        risk_color = "orange"
     else:
         risk_level = "Low"
-        risk_color = "green"
 
     st.subheader("Risk Assessment")
-    metric_left, metric_right = st.columns(2)
+    metric_left, metric_mid, metric_right = st.columns(3)
     metric_left.metric("Model Probability", f"{proba:.1%}")
-    metric_right.metric("Adjusted Probability", f"{adjusted_proba:.1%}")
+    metric_mid.metric("Adjusted Probability", f"{adjusted_proba:.1%}")
+    metric_right.metric("Risk Level", risk_level)
+    st.progress(float(adjusted_proba))
+
     if risk_level == "High":
         st.error("High risk: escalate review and block if needed.")
     elif risk_level == "Medium":
@@ -306,12 +321,14 @@ if input_df is not None:
     else:
         st.success("Low risk: approve with standard monitoring.")
 
-    st.markdown(
-        f"Risk Level: <span style='color:{risk_color};'><strong>{risk_level}</strong></span>",
-        unsafe_allow_html=True,
-    )
+    st.caption("Thresholds: Low <= 30% | Medium 30-70% | High > 70%")
     if rule_hits:
         st.info(f"Rule overrides applied: {', '.join(rule_hits)}")
+
+    with st.expander("Input snapshot used for scoring"):
+        st.dataframe(input_df.T, use_container_width=True)
+
+    st.divider()
 
     st.subheader("Why this prediction?")
     explainer = shap.TreeExplainer(model)
@@ -328,7 +345,7 @@ if input_df is not None:
     feature_names = _get_transformed_feature_names(preprocessor, X_transformed)
     row = _row_array(X_transformed[0])
 
-    st.markdown("**Waterfall view**")
+    st.markdown("**Waterfall view (recommended)**")
     st.caption("Red = pushes toward fraud, Blue = pushes toward legitimate.")
     explanation = shap.Explanation(
         values=shap_values[0],
